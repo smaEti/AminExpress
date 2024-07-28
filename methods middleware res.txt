@@ -1,0 +1,52 @@
+methods (its ok)
+middleware 
+res redirect , send , . . .
+server statics 
+query (data) (its ok)
+body (data)
+next function
+
+------------------------
+http: To create an HTTP server.
+url: To parse request URLs.(its good for the queries and etc)
+path: For handling and transforming file paths.
+querystring: For parsing and formatting URL query strings.
+fs: For file system operations (if needed).
+
+----------------------------------------------------------------------------------------
+tasks							     |	   difficulity - State							
+-----------------------------------------------------------------------------------------
+1.npm install aminexpress 				     |   	   EASY
+2.const app = aminexpress()				     |		  SOLVED
+3.app.use((req , res , next)=>{})                            |
+4.get , post , put , delete method routes                    |
+5.strongly typed                                             |
+6.required methods = res.end() , res.json() , res.redirect() |
+------------------------------------------------------------------------------------------
+7.req.query                                                  |		  SOLVED
+-------------------------------------------------------------------------------------------
+8. built-in middleware to serve statics files                |
+-----------------------------------------------------------------------------------------
+req.query mini task : 
+        const myURL = new URL(req.headers.host + req.url!);
+        console.log(querystring.parse(myURL.searchParams.toString()))
+
+ROUTE METHODS EXPLAINED 
+
+    GET: Retrieve data.
+    POST: Send data to create a new resource.
+    PUT: Update an existing resource.
+    DELETE: Delete a resource.
+
+Request Body:
+
+    GET: Typically does not include a body (parameters are usually in the URL query string).
+    POST: Includes data in the body.
+    PUT: Includes data in the body.
+    DELETE: Usually does not include a body (identifies the resource to delete via URL parameters).
+    -------------------------------------------------------------------------------------------------
+    middleware 
+    function
+    router
+    path related function
+    
