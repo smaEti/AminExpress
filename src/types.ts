@@ -3,6 +3,7 @@ import { ParsedUrlQuery } from "node:querystring";
 
 export interface Request extends IncomingMessage {
   query?: ParsedUrlQuery;
+  params ?: { [key: string]: any };
 }
 export interface Response extends IncomingMessage {}
 export type Path = string | string[];

@@ -5,13 +5,26 @@ export class RouteMap {
   methods: Record<string, RouteInterface> = {};
   constructor() {}
 
-  private hasSection(section: string): RouteMap | null {
+  private hasSection(section: string): [RouteMap, string] | [null, string] {
     const searchChar = this.children[section];
+    let parameterSection;
+    let keyOfPath: string = "";
+    Object.entries(this.children).forEach(([key, value]) => {
+      // console.log(`${key}:`,value);
+      if (key.startsWith(":")) {
+        parameterSection = this.children[key];
+        keyOfPath = key;
+      }
+    });
     if (typeof searchChar !== "undefined") {
-      return searchChar;
+      return [searchChar, section];
     }
-
-    return null;
+    if (
+      typeof searchChar == "undefined" &&
+      typeof parameterSection !== "undefined"
+    )
+      return [parameterSection, keyOfPath];
+    return [null, section];
   }
 
   private addPathSection(section: string): RouteMap {
@@ -20,24 +33,36 @@ export class RouteMap {
     return newSubTrie;
   }
 
-  search(path: string): RouteMap | null {
+  search(
+    path: string
+  ): [RouteMap, [string, string][]] | [null, [string, string][]] {
     let PathSections = path.split("/");
     PathSections = PathSections.filter((str) => str !== "");
-    return this.searchTrie(PathSections);
+    let params: [string, string][] = [];
+    return [this.searchTrie(PathSections, params), params];
   }
 
-  private searchTrie(pathSections: string[]): RouteMap | null {
-    const subTrie = this.hasSection(pathSections[0]);
+  private searchTrie(
+    pathSections: string[],
+    params: [string, string][]
+  ): RouteMap | null {
+    const [subTrie, pathOfKey]: [RouteMap, string] | [null, string] =
+      this.hasSection(pathSections[0]);
     if (
       pathSections.slice(1, pathSections.length).length == 0 &&
       subTrie !== null
-    )
+    ) {
+      params.push([pathOfKey, pathSections[0]]);
       return subTrie;
+    }
     if (subTrie === null) {
       return null;
     }
-
-    return subTrie.searchTrie(pathSections.slice(1, pathSections.length));
+    params.push([pathOfKey, pathSections[0]]);
+    return subTrie.searchTrie(
+      pathSections.slice(1, pathSections.length),
+      params
+    );
   }
 
   addRoute(path: string): RouteMap {
@@ -48,7 +73,8 @@ export class RouteMap {
 
   private addRouteChild(PathSections: string[]): RouteMap {
     if (PathSections.length == 0) return this;
-    const subTrie = this.hasSection(PathSections[0]);
+    const [subTrie, pathOfKey]: [RouteMap, string] | [null, string] =
+      this.hasSection(PathSections[0]);
     if (subTrie !== null) {
       return subTrie.addRouteChild(PathSections.slice(1, PathSections.length));
     } else {
@@ -60,13 +86,13 @@ export class RouteMap {
   }
 }
 // let trie = new RouteMap();
-// console.log(trie.addRoute("v1/user/signin"));
-// console.log(trie.addRoute("/v1/ahmad/"));
+// trie.addRoute("v1/:user/signin");
+// trie.addRoute("/v1/ahmad/");
 // console.log(trie.addRoute("v1/ali/signup"));
 // console.log(trie.addRoute("v2/ali/signup"));
 // // trie.addRouteParent("v2/ali/signup");
 
-// console.log(trie.search("v1/user/signin"));
+// console.log(trie.search("v1/46531"));
 // console.log(trie.search("v1/user"));
 
 // console.log(

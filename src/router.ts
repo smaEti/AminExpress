@@ -99,12 +99,14 @@ export default class Router {
       }
     }
   }
-  handler(req: IncomingMessage, res: ServerResponse) {
+  handler(req: Request, res: ServerResponse) {
     req = this.handleQuery(req);
-    res.statusCode = 500;
-    res.end()
+    // res.statusCode = 500;
+    // res.end()
     // console.log(req.headers.host +  req.url!);
-    const route = this.routeMap.search(req.url as string);
+    const [route, params] = this.routeMap.search(req.url as string);
+    req = this.handleUrlParameter(req,params);
+    // TODO : if route null handle error 404 not found
     if (route == null) return;
     // console.log(route.methods[req.method as string])
     for (
@@ -131,8 +133,25 @@ export default class Router {
     }
   }
   handleQuery(req: Request): Request {
-    const myURL = new URL(req.headers.host +  req.url!);
+    const myURL = new URL(req.headers.host + req.url!);
     req.query = querystring.parse(myURL.searchParams.toString());
+    return req;
+  }
+  handleUrlParameter(
+    req: Request,
+    params: [string, string][]
+  ) : Request {
+    req.params = {};
+    Object.entries(params).forEach(([key, value]) => {
+      // console.log(`${key}:`,value);
+      if (value[0] !== value[1] ) {
+        req.params![value[0].slice(1)] = value[1];
+      }
+    });
+    // temp.map((param)=>{
+    //   param.key = param.key.slice(1);
+    // })
+    // return temp;
     return req;
   }
   createRoute(
