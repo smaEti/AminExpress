@@ -73,21 +73,12 @@ class AminExpress {
   public listen(port: number, callback: () => void): void {
     const server = http.createServer(
       (req: IncomingMessage, res: ServerResponse) => {
-        console.log(req.url);
+        // console.log(req.url);
         this.router.handler(req,res);
       }
     );
 
     server.listen(port, callback);
-  }
-  QueryParamsMiddleware(req: IncomingMessage, response: ServerResponse) {
-    const myURL = new URL(req.headers.host + req.url!);
-
-    let request: Request = {
-      ...req,
-      queryParams: querystring.parse(myURL.searchParams.toString()),
-    } as Request;
-    return request;
   }
 }
 export default function aminexpress(): AminExpress {

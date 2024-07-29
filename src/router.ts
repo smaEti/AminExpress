@@ -10,7 +10,8 @@ import {
 } from "./types";
 import { RouteMap } from "./RouteMap";
 import { IncomingMessage, ServerResponse } from "http";
-
+import { URL } from "node:url";
+import querystring from "node:querystring";
 export default class Router {
   routeMap: RouteMap = new RouteMap();
   middlewareCounter: number = 0;
@@ -98,20 +99,41 @@ export default class Router {
       }
     }
   }
-  handler(req : IncomingMessage , res : ServerResponse) {
+  handler(req: IncomingMessage, res: ServerResponse) {
+    req = this.handleQuery(req);
+    res.statusCode = 500;
+    res.end()
+    // console.log(req.headers.host +  req.url!);
     const route = this.routeMap.search(req.url as string);
-    if(route == null ) return;
+    if (route == null) return;
     // console.log(route.methods[req.method as string])
-    for(let i = 0; i <route.methods[req.method as string].middlewares.length;i++){
-      for(let j = 0; j < route.methods[req.method as string].middlewares[i].callbacks.length;j++){
+    for (
+      let i = 0;
+      i < route.methods[req.method as string].middlewares.length;
+      i++
+    ) {
+      for (
+        let j = 0;
+        j < route.methods[req.method as string].middlewares[i].callbacks.length;
+        j++
+      ) {
         route.methods[req.method as string].middlewares[i].callbacks[j](req);
         //TODO : only sends request
       }
     }
-    for(let i = 0; i <route.methods[req.method as string].callbacks.length;i++){
-        route.methods[req.method as string].callbacks[i](req);
-        //TODO : only sends request
+    for (
+      let i = 0;
+      i < route.methods[req.method as string].callbacks.length;
+      i++
+    ) {
+      route.methods[req.method as string].callbacks[i](req);
+      //TODO : only sends request
     }
+  }
+  handleQuery(req: Request): Request {
+    const myURL = new URL(req.headers.host +  req.url!);
+    req.query = querystring.parse(myURL.searchParams.toString());
+    return req;
   }
   createRoute(
     method: Methods,
@@ -140,7 +162,9 @@ export default class Router {
       }
       newRoute.methods[method] = {
         callbacks: [callback, ...callbacks],
-        middlewares: [...relatedPathmids,...this.GLOBALmiddlewares].sort((a,b)=> a.index - b.index),
+        middlewares: [...relatedPathmids, ...this.GLOBALmiddlewares].sort(
+          (a, b) => a.index - b.index
+        ),
       };
       if (!isArray) break;
     }

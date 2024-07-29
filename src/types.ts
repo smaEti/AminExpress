@@ -2,7 +2,7 @@ import { IncomingMessage } from "node:http";
 import { ParsedUrlQuery } from "node:querystring";
 
 export interface Request extends IncomingMessage {
-  queryParams?: ParsedUrlQuery;
+  query?: ParsedUrlQuery;
 }
 export interface Response extends IncomingMessage {}
 export type Path = string | string[];
