@@ -107,6 +107,7 @@ export default class Router {
   handler(req: IncomingMessage, res: ServerResponse) {
     let response = this.setResponseConfigs(res);
     let request = this.handleQuery(req);
+    console.log(request.url);
     if (this.serveStaticPathFlag) {
       if (req.url?.startsWith(this.serveStaticPathFlag[1])) {
         this.handleServerStatic(request.url!, request, res);
@@ -116,16 +117,16 @@ export default class Router {
     const [route, params] = this.routeMap.search(req.url as string);
     request = this.handleUrlParameter(request, params);
     if (route == null) {
-      res.statusCode = 404;
-      res.end(`Cannot ${request.method} ${request.url}`);
+      response.statusCode = 404;
+      response.end(`Cannot ${request.method} ${request.url}`);
       return;
     }
     let stack: CallbacksTemplate = [];
     let callbackIndex = 0;
     // console.log(route.methods[request.method as string].callbacks);
-    if(typeof route.methods[request.method as string] == "undefined"){
-      res.statusCode = 404;
-      res.end(`Cannot ${request.method} ${request.url}`);
+    if (typeof route.methods[request.method as string] == "undefined") {
+      response.statusCode = 404;
+      response.end(`Cannot ${request.method} ${request.url}`);
       return;
     }
     stack.push(...route.methods[request.method as string].callbacks);
@@ -156,7 +157,8 @@ export default class Router {
     const myURL = new URL(req.headers.host + req.url!);
     req.query = querystring.parse(myURL.searchParams.toString());
     let indexOfQuery = req.url?.indexOf("?");
-    req.url = req.url?.slice(0,indexOfQuery);
+    console.log("index", indexOfQuery);
+    if (indexOfQuery !== -1) req.url = req.url?.slice(0, indexOfQuery);
     return req;
   }
   handleUrlParameter(req: Request, params: [string, string][]): Request {

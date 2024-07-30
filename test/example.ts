@@ -41,7 +41,7 @@ app.use((req, res, next: NextFunction) => {
 // );
 // path related middleware with one callback
 app.get("/v1/:id", (req: Request, res: Response, next: NextFunction) => {
-  // console.log(`first route /v1/${req.params!.id}`);
+  console.log(`first route /v1/${req.params!.id}`);
   // res.end("hahahahahahahahah it works")
   console.log(req.query);
 

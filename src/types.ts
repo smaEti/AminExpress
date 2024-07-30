@@ -6,6 +6,7 @@ export interface Request extends IncomingMessage {
   params?: { [key: string]: any };
 }
 export interface Response extends ServerResponse {
+
   json: (data: object) => void;
   redirect: (path: string) => void;
 }
