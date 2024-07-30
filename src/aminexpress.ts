@@ -1,8 +1,6 @@
 import http, { IncomingMessage, ServerResponse } from "node:http";
 import Router from "./router";
-import { URL } from "node:url";
-import querystring from "node:querystring";
-import fs from "node:fs";
+
 import {
   Path,
   Request,
@@ -12,6 +10,7 @@ import {
   CallbackTemplate,
 } from "./types";
 class AminExpress {
+  serveStaticFlag: [boolean, string] = [false, ""];
   router: Router = new Router();
   constructor() {
     console.log("aminexpress instanciated");
@@ -71,12 +70,10 @@ class AminExpress {
 
     server.listen(port, callback);
   }
-  serveStatic(path: string) {
-    let paths: [string, string][] = [];
-    fs.readdirSync(path).map((fileName) => {
-      paths.push([fileName, path.concat(path, "/" + fileName)]);
-    });
-    console.log(paths);
+  serveStatic(fileAddress: string,url : string) {
+
+    this.router.serveStaticPathFlag = [fileAddress,url];
+
   }
 }
 export default function aminexpress(): AminExpress {

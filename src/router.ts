@@ -7,11 +7,17 @@ import {
   Middleware,
   Response,
 } from "./types";
+import fs, { open, close } from "node:fs";
+
+const path = require("path");
+
 import { RouteMap } from "./RouteMap";
 import { URL } from "node:url";
 import querystring from "node:querystring";
 import { IncomingMessage, ServerResponse } from "node:http";
 export default class Router {
+  serveStaticPathFlag: [string, string] | null = null;
+  // serveStaticPaths: [string, string][] = [];
   routeMap: RouteMap = new RouteMap();
   middlewareCounter: number = 0;
   GLOBALmiddlewares: Middleware[] = [];
@@ -99,9 +105,14 @@ export default class Router {
     }
   }
   handler(req: IncomingMessage, res: ServerResponse) {
-    
     let response = this.setResponseConfigs(res);
     let request = this.handleQuery(req);
+    if (this.serveStaticPathFlag) {
+      if (req.url?.startsWith(this.serveStaticPathFlag[1])) {
+        this.handleServerStatic(request.url!, request, res);
+        return;
+      }
+    }
     const [route, params] = this.routeMap.search(req.url as string);
     request = this.handleUrlParameter(request, params);
     if (route == null) {
@@ -111,16 +122,23 @@ export default class Router {
     }
     let stack: CallbacksTemplate = [];
     let callbackIndex = 0;
+    // console.log(route.methods[request.method as string].callbacks);
+    if(typeof route.methods[request.method as string] == "undefined"){
+      res.statusCode = 404;
+      res.end(`Cannot ${request.method} ${request.url}`);
+      return;
+    }
     stack.push(...route.methods[request.method as string].callbacks);
-    this.GLOBALmiddlewares.filter(
-      (middle) =>
-        middle.index >
-        route.methods[request.method as string].middlewares[
-          route.methods[request.method as string].middlewares.length - 1
-        ].index
-    ).map((middles) => {
-      stack.push(...middles.callbacks);
-    });
+    if (route.methods[request.method as string].middlewares.length !== 0)
+      this.GLOBALmiddlewares.filter(
+        (middle) =>
+          middle.index >
+          route.methods[request.method as string].middlewares[
+            route.methods[request.method as string].middlewares.length - 1
+          ].index
+      ).map((middles) => {
+        stack.push(...middles.callbacks);
+      });
     function next(err?: Error) {
       if (err) {
         return handleError(err, request, response, next);
@@ -137,6 +155,8 @@ export default class Router {
   handleQuery(req: Request): Request {
     const myURL = new URL(req.headers.host + req.url!);
     req.query = querystring.parse(myURL.searchParams.toString());
+    let indexOfQuery = req.url?.indexOf("?");
+    req.url = req.url?.slice(0,indexOfQuery);
     return req;
   }
   handleUrlParameter(req: Request, params: [string, string][]): Request {
@@ -148,20 +168,63 @@ export default class Router {
     });
     return req;
   }
-  setResponseConfigs(res : ServerResponse) : Response{
-    let newRes  : Response = {...res,
-      json : function(data  : object  ){
-        res.setHeader('Content-Type', 'application/json');
-        res.write(JSON.stringify(data))
-        res.end()
+  setResponseConfigs(res: ServerResponse): Response {
+    let newRes: Response = {
+      ...res,
+      json: function (data: object) {
+        res.setHeader("Content-Type", "application/json");
+        res.write(JSON.stringify(data));
+        res.end();
       },
-      redirect : function(path : string){
-        res.writeHead(302, {'Location':  path});
-        res.end()
-      }
+      redirect: function (path: string) {
+        res.writeHead(302, { Location: path });
+        res.end();
+      },
     } as Response;
     return newRes;
   }
+  handleServerStatic(url: string, request: Request, response: ServerResponse) {
+    const ext: string = path.parse(url).ext;
+    interface StringKeyValue {
+      [key: string]: string;
+    }
+    const map: StringKeyValue = {
+      ".ico": "image/x-icon",
+      ".html": "text/html",
+      ".js": "text/javascript",
+      ".ts": "text/typescript",
+      ".json": "application/json",
+      ".css": "text/css",
+      ".png": "image/png",
+      ".jpg": "image/jpeg",
+      ".wav": "audio/wav",
+      ".mp3": "audio/mpeg",
+      ".svg": "image/svg+xml",
+      ".pdf": "application/pdf",
+      ".doc": "application/msword",
+    };
+    open(this.serveStaticPathFlag![0] + url, "r", (err, fd) => {
+      if (err) {
+        if (err.code === "ENOENT") {
+          response.statusCode = 404;
+          response.end(`NotFound`);
+          console.error(`${url} file does not exist`);
+          return;
+        }
+      }
+    });
+
+    fs.readFile(this.serveStaticPathFlag![0] + url, function (err, data) {
+      if (err) {
+        response.statusCode = 500;
+        response.end(`Error getting the file.`);
+      } else {
+        response.setHeader("Content-type", map[ext] || "text/plain");
+        response.end(data);
+      }
+    });
+  }
+
   createRoute(
     method: Methods,
     paths: Path,
