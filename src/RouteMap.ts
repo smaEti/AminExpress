@@ -10,7 +10,6 @@ export class RouteMap {
     let parameterSection;
     let keyOfPath: string = "";
     Object.entries(this.children).forEach(([key, value]) => {
-      // console.log(`${key}:`,value);
       if (key.startsWith(":")) {
         parameterSection = this.children[key];
         keyOfPath = key;
@@ -37,9 +36,7 @@ export class RouteMap {
     path: string
   ): [RouteMap, [string, string][]] | [null, [string, string][]] {
     let PathSections = path.split("/");
-    console.log(PathSections);
     if (PathSections[1] == "") return [this, [["", ""]]];
-    console.log(PathSections);
     PathSections = PathSections.filter((str) => str !== "");
     let params: [string, string][] = [];
     return [this.searchTrie(PathSections, params), params];

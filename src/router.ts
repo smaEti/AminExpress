@@ -107,10 +107,9 @@ export default class Router {
   handler(req: IncomingMessage, res: ServerResponse) {
     let response = this.setResponseConfigs(res);
     let request = this.handleQuery(req);
-    console.log(request.url);
     if (this.serveStaticPathFlag) {
       if (req.url?.startsWith(this.serveStaticPathFlag[1])) {
-        this.handleServerStatic(request.url!, request, res);
+        this.handleServerStatic(request.url!, request, response);
         return;
       }
     }
@@ -123,7 +122,6 @@ export default class Router {
     }
     let stack: CallbacksTemplate = [];
     let callbackIndex = 0;
-    // console.log(route.methods[request.method as string].callbacks);
     if (typeof route.methods[request.method as string] == "undefined") {
       response.statusCode = 404;
       response.end(`Cannot ${request.method} ${request.url}`);
@@ -157,7 +155,6 @@ export default class Router {
     const myURL = new URL(req.headers.host + req.url!);
     req.query = querystring.parse(myURL.searchParams.toString());
     let indexOfQuery = req.url?.indexOf("?");
-    console.log("index", indexOfQuery);
     if (indexOfQuery !== -1) req.url = req.url?.slice(0, indexOfQuery);
     return req;
   }
@@ -170,22 +167,20 @@ export default class Router {
     });
     return req;
   }
-  setResponseConfigs(res: ServerResponse): Response {
-    let newRes: Response = {
-      ...res,
-      json: function (data: object) {
-        res.setHeader("Content-Type", "application/json");
-        res.write(JSON.stringify(data));
-        res.end();
-      },
-      redirect: function (path: string) {
-        res.writeHead(302, { Location: path });
-        res.end();
-      },
-    } as Response;
-    return newRes;
+  setResponseConfigs(res: Response): Response {
+    res.json = function (data: object) {
+      res.setHeader("Content-Type", "application/json");
+      res.write(JSON.stringify(data));
+      res.end();
+    };
+    res.redirect = function (path: string) {
+      res.writeHead(302, { Location: path });
+      res.end();
+    };
+
+    return res;
   }
-  handleServerStatic(url: string, request: Request, response: ServerResponse) {
+  handleServerStatic(url: string, request: Request, response: Response) {
     const ext: string = path.parse(url).ext;
     interface StringKeyValue {
       [key: string]: string;

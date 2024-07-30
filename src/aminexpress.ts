@@ -12,9 +12,6 @@ import {
 class AminExpress {
   serveStaticFlag: [boolean, string] = [false, ""];
   router: Router = new Router();
-  constructor() {
-    console.log("aminexpress instanciated");
-  }
   get(path: Path, callback: CallbackTemplate, ...callbacks: CallbacksTemplate) {
     this.router.get(path, callback, ...callbacks);
   }

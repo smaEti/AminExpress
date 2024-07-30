@@ -4,7 +4,7 @@ const app = aminexpress();
 app.serveStatic(__dirname, "/uploads");
 // path related[] middleware with multiple callbacks
 app.get("/", (req: Request, res: Response, next: NextFunction) => {
-  res.json({ route: "/" });
+  res.json!({ route: "/" });
 });
 
 // app.use(
@@ -45,7 +45,7 @@ app.get("/v1/:id", (req: Request, res: Response, next: NextFunction) => {
   // res.end("hahahahahahahahah it works")
   console.log(req.query);
 
-  res.json({ message: "lol" });
+  res.json!({ message: "lol" });
   // res.redirect("/v2/user/akbar");
   // res.redirect("/v1/user/wer/1");1
 });
