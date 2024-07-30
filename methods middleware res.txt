@@ -13,19 +13,19 @@ path: For handling and transforming file paths.
 querystring: For parsing and formatting URL query strings.
 fs: For file system operations (if needed).
 
-----------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------
 tasks							                             |	   difficulity - State							
 -----------------------------------------------------------------------------------------
 1.npm install aminexpress 				                     |   	   EASY(laaaaaaast)
-2.const app = aminexpress()				                     |		  SOLVED    
-3.app.use((req , res , next)=>{})                            |        SOLVED
-4.get , post , put , delete method routes                    |        SOLVED
-5.strongly typed                                             |        SOLVED
-6.required methods = res.end() , res.json() , res.redirect() |        SOLVED
+2.const app = aminexpress()				                     |		  SOLVED    (checked)
+3.app.use((req , res , next)=>{})                            |        SOLVED    (checked)
+4.get , post , put , delete method routes                    |        SOLVED    (checked)
+5.strongly typed                                             |        SOLVED    (checked)
+6.required methods = res.end() , res.json() , res.redirect() |        SOLVED    (res.end does not work)
 ------------------------------------------------------------------------------------------
-7.req.query                                                  |		  SOLVED
+7.req.query                                                  |		  SOLVED    (checked)
 -------------------------------------------------------------------------------------------
-8. built-in middleware to serve statics files                |          ?(in idea is ok (for every request i get every file in folder and make a get route and a callback for everyone of them to call the only thing that is important in this manner is that i shouldnt make a repeated route))
+8. built-in middleware to serve statics files                |        SOLVED ? (FUCK MY LIFE) (checked)
 -----------------------------------------------------------------------------------------
 req.query mini task : 
         const myURL = new URL(req.headers.host + req.url!);
