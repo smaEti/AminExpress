@@ -37,6 +37,9 @@ export class RouteMap {
     path: string
   ): [RouteMap, [string, string][]] | [null, [string, string][]] {
     let PathSections = path.split("/");
+    console.log(PathSections);
+    if (PathSections[1] == "") return [this, [["", ""]]];
+    console.log(PathSections);
     PathSections = PathSections.filter((str) => str !== "");
     let params: [string, string][] = [];
     return [this.searchTrie(PathSections, params), params];
@@ -85,24 +88,3 @@ export class RouteMap {
     }
   }
 }
-// let trie = new RouteMap();
-// trie.addRoute("v1/:user/signin");
-// trie.addRoute("/v1/ahmad/");
-// console.log(trie.addRoute("v1/ali/signup"));
-// console.log(trie.addRoute("v2/ali/signup"));
-// // trie.addRouteParent("v2/ali/signup");
-
-// console.log(trie.search("v1/46531"));
-// console.log(trie.search("v1/user"));
-
-// console.log(
-//   (trie.addRoute("/")!.methods["GET"] = {
-//     callbacks: [async () => {}, () => {}],
-//     middlewares: [],
-//   })
-// );
-// trie.search("v1/")!.methods["POST"] = {callbacks : [()=>{} ,()=>{}], middlewares : []};
-// trie.search("v1/")!.methods["GET"] = {callbacks : [()=>{} ,()=>{}], middlewares : []};
-// console.log(trie.search("v1/")!.methods);
-
-// console.log(trie.children);
