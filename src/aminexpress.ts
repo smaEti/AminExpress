@@ -2,6 +2,7 @@ import http, { IncomingMessage, ServerResponse } from "node:http";
 import Router from "./router";
 import { URL } from "node:url";
 import querystring from "node:querystring";
+import fs from "node:fs";
 import {
   Path,
   Request,
@@ -35,9 +36,6 @@ class AminExpress {
   ) {
     this.router.delete(path, callback, ...callbacks);
   }
-  // use(callback: CallbackTemplate, ...callbacks: CallbacksTemplate) {
-  //   this.router.use(callback ,callbacks);
-  // }
   use(callback: CallbackTemplate, ...callbacks: CallbacksTemplate): void;
   use(
     paths: Path,
@@ -49,36 +47,36 @@ class AminExpress {
     callbackOrCallbacks: CallbackTemplate | CallbacksTemplate,
     ...callbacks: CallbacksTemplate
   ): void {
-    // console.log("typeof 1st :", typeof pathsOrCallback)
-    // console.log("typeof 2nd :", typeof callbackOrCallbacks)
-    // console.log("typeof 3rd :", typeof callbacks)
     if (
       typeof pathsOrCallback === "string" ||
       (Array.isArray(pathsOrCallback) &&
         typeof callbackOrCallbacks !== "undefined")
     ) {
-      console.log("type of 1st was string");
       let path: Path = pathsOrCallback;
       let firstCallback: CallbackTemplate =
         callbackOrCallbacks as CallbackTemplate;
       this.router.use(path, firstCallback, ...callbacks);
-    }else {
-      console.log("type of 1st was not string");
-
+    } else {
       let firstCallback = pathsOrCallback as CallbackTemplate;
       let secondCallback = callbackOrCallbacks as CallbackTemplate;
-      this.router.use(firstCallback,secondCallback,...callbacks);
+      this.router.use(firstCallback, secondCallback, ...callbacks);
     }
   }
   public listen(port: number, callback: () => void): void {
     const server = http.createServer(
       (req: IncomingMessage, res: ServerResponse) => {
-        // console.log(req.url);
-        this.router.handler(req,res);
+        this.router.handler(req, res);
       }
     );
 
     server.listen(port, callback);
+  }
+  serveStatic(path: string) {
+    let paths: [string, string][] = [];
+    fs.readdirSync(path).map((fileName) => {
+      paths.push([fileName, path.concat(path, "/" + fileName)]);
+    });
+    console.log(paths);
   }
 }
 export default function aminexpress(): AminExpress {

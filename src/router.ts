@@ -1,17 +1,16 @@
 import {
   Request,
   Path,
-  Callback,
-  AsyncCallback,
   CallbackTemplate,
   CallbacksTemplate,
   Methods,
   Middleware,
+  Response,
 } from "./types";
 import { RouteMap } from "./RouteMap";
-import { IncomingMessage, ServerResponse } from "http";
 import { URL } from "node:url";
 import querystring from "node:querystring";
+import { IncomingMessage, ServerResponse } from "node:http";
 export default class Router {
   routeMap: RouteMap = new RouteMap();
   middlewareCounter: number = 0;
@@ -99,60 +98,69 @@ export default class Router {
       }
     }
   }
-  handler(req: Request, res: ServerResponse) {
-    req = this.handleQuery(req);
-    // res.statusCode = 500;
-    // res.end()
-    // console.log(req.headers.host +  req.url!);
+  handler(req: IncomingMessage, res: ServerResponse) {
+    
+    let response = this.setResponseConfigs(res);
+    let request = this.handleQuery(req);
     const [route, params] = this.routeMap.search(req.url as string);
-    req = this.handleUrlParameter(req,params);
-    // TODO : if route null handle error 404 not found
-    if (route == null) return;
-    // console.log(route.methods[req.method as string])
-    for (
-      let i = 0;
-      i < route.methods[req.method as string].middlewares.length;
-      i++
-    ) {
-      for (
-        let j = 0;
-        j < route.methods[req.method as string].middlewares[i].callbacks.length;
-        j++
-      ) {
-        route.methods[req.method as string].middlewares[i].callbacks[j](req);
-        //TODO : only sends request
+    request = this.handleUrlParameter(request, params);
+    if (route == null) {
+      res.statusCode = 404;
+      res.end(`Cannot ${request.method} ${request.url}`);
+      return;
+    }
+    let stack: CallbacksTemplate = [];
+    let callbackIndex = 0;
+    stack.push(...route.methods[request.method as string].callbacks);
+    this.GLOBALmiddlewares.filter(
+      (middle) =>
+        middle.index >
+        route.methods[request.method as string].middlewares[
+          route.methods[request.method as string].middlewares.length - 1
+        ].index
+    ).map((middles) => {
+      stack.push(...middles.callbacks);
+    });
+    function next(err?: Error) {
+      if (err) {
+        return handleError(err, request, response, next);
       }
+
+      if (callbackIndex >= stack.length) return;
+
+      const callback = stack[callbackIndex++];
+      callback(request, response, next);
     }
-    for (
-      let i = 0;
-      i < route.methods[req.method as string].callbacks.length;
-      i++
-    ) {
-      route.methods[req.method as string].callbacks[i](req);
-      //TODO : only sends request
-    }
+
+    next();
   }
   handleQuery(req: Request): Request {
     const myURL = new URL(req.headers.host + req.url!);
     req.query = querystring.parse(myURL.searchParams.toString());
     return req;
   }
-  handleUrlParameter(
-    req: Request,
-    params: [string, string][]
-  ) : Request {
+  handleUrlParameter(req: Request, params: [string, string][]): Request {
     req.params = {};
     Object.entries(params).forEach(([key, value]) => {
-      // console.log(`${key}:`,value);
-      if (value[0] !== value[1] ) {
+      if (value[0] !== value[1]) {
         req.params![value[0].slice(1)] = value[1];
       }
     });
-    // temp.map((param)=>{
-    //   param.key = param.key.slice(1);
-    // })
-    // return temp;
     return req;
+  }
+  setResponseConfigs(res : ServerResponse) : Response{
+    let newRes  : Response = {...res,
+      json : function(data  : object  ){
+        res.setHeader('Content-Type', 'application/json');
+        res.write(JSON.stringify(data))
+        res.end()
+      },
+      redirect : function(path : string){
+        res.writeHead(302, {'Location':  path});
+        res.end()
+      }
+    } as Response;
+    return newRes;
   }
   createRoute(
     method: Methods,
@@ -179,8 +187,14 @@ export default class Router {
           }
         }
       }
+      let middlewareCallbacks: CallbacksTemplate = [];
+      [...relatedPathmids, ...this.GLOBALmiddlewares]
+        .sort((a, b) => a.index - b.index)
+        .map((item) => {
+          middlewareCallbacks.push(...item.callbacks);
+        });
       newRoute.methods[method] = {
-        callbacks: [callback, ...callbacks],
+        callbacks: [...middlewareCallbacks, ...[callback, ...callbacks]],
         middlewares: [...relatedPathmids, ...this.GLOBALmiddlewares].sort(
           (a, b) => a.index - b.index
         ),
@@ -188,4 +202,12 @@ export default class Router {
       if (!isArray) break;
     }
   }
+}
+function handleError(
+  err: Error,
+  req: Request,
+  res: Response,
+  next: (err?: Error) => any
+) {
+  throw new Error("Function not implemented.");
 }

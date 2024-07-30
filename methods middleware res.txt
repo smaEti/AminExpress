@@ -18,10 +18,10 @@ tasks							                             |	   difficulity - State
 -----------------------------------------------------------------------------------------
 1.npm install aminexpress 				                     |   	   EASY(laaaaaaast)
 2.const app = aminexpress()				                     |		  SOLVED    
-3.app.use((req , res , next)=>{})                            |       ?(req,res,next)
+3.app.use((req , res , next)=>{})                            |        SOLVED
 4.get , post , put , delete method routes                    |        SOLVED
 5.strongly typed                                             |        SOLVED
-6.required methods = res.end() , res.json() , res.redirect() |         ?(last)
+6.required methods = res.end() , res.json() , res.redirect() |        SOLVED
 ------------------------------------------------------------------------------------------
 7.req.query                                                  |		  SOLVED
 -------------------------------------------------------------------------------------------

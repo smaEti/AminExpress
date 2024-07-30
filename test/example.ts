@@ -1,12 +1,13 @@
-import aminexpress from "../src/aminexpress";
-import { Request } from "../src/types";
+import aminexpress, { serveStatic } from "../src/aminexpress";
+import { NextFunction, Request, Response } from "../src/types";
 const app = aminexpress();
+serveStatic(__dirname)
 // path related[] middleware with multiple callbacks
 
 // app.use(
 //   ["/v1", "/v2"],
-//   (req : Request) => {
-//     console.log("path related[] middleware with multiple callbacks 1",req);
+//   (req : Request , res : Response) => {
+//     console.log("path related[] middleware with multiple callbacks 1");
 //   },
 //   () => {
 //     console.log("path related[] middleware with multiple callbacks 2");
@@ -16,27 +17,39 @@ const app = aminexpress();
 //   }
 // );
 //middleware with only one callback
-// app.use(async () => {
+// app.use(async (req, res, next: NextFunction) => {
 //   console.log("middleware first");
+//   next();
 // });
-// middleware with multiple callback functions
+// // middleware with multiple callback functions
 // app.use(
-//   () => {
+//   (req, res, next: NextFunction) => {
 //     console.log("middleware second");
+//     next();
 //   },
-//   () => {
+//   (req, res, next: NextFunction) => {
 //     console.log("middleware second2");
+//     next();
 //   },
-//   () => {
+//   (req, res, next: NextFunction) => {
 //     console.log("middleware second3");
+//     next();
 //   }
 // );
 // path related middleware with one callback
-// app.use("/", () => {});
+// app.get("/v1/:id", (req: Request, res: Response, next: NextFunction) => {
+//   console.log(`first route /v1/${req.params!.id}`);
+//   // res.end("hahahahahahahahah it works")
+//   // res.json({"message" : "lol"});
+//   res.redirect("/v1/user/wer/1");
+// });
 // app.get("/v1/user/1/",()=>{});
-app.get("/v1/user/:ahmad/1/",(req : Request)=>{
-console.log(req.params!.ahmad)
-});
+// app.get(
+//   "/v1/user/:ahmad/1/",
+//   (req: Request, res: Response, next: NextFunction) => {
+//     res.json({ message: "redirected" });
+//   }
+// );
 
 // app.get(
 //   ["/", "/v1"],
@@ -71,11 +84,12 @@ console.log(req.params!.ahmad)
 //     console.log("2");
 //   }
 // );
-// app.use(()=>{
+app.use(
+  () => {},
+  () => {},
+  () => {}
+);
 
-// },()=>{
-
-// })
 // app.router.routeMap.children["v1"].children["user"].methods["GET"].callbacks[0]()
 // app.router.routeMap.children["v1"].children["user"].methods["GET"].callbacks[1]()
 // console.log(app.router.routeMap.methods["GET"])
