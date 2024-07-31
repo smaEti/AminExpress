@@ -7,6 +7,7 @@ import {
   Middleware,
   Response,
   NextFunction,
+  StringTupleList,
 } from "./types";
 import fs, { open } from "node:fs";
 const path = require("path");
@@ -153,7 +154,7 @@ export default class Router {
     if (indexOfQuery !== -1) req.url = req.url?.slice(0, indexOfQuery);
     return req;
   }
-  handleUrlParameter(req: Request, params: [string, string][]): Request {
+  handleUrlParameter(req: Request, params: StringTupleList): Request {
     req.params = {};
     Object.entries(params).forEach(([key, value]) => {
       if (value[0] !== value[1]) {

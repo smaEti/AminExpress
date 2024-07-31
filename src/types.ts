@@ -1,5 +1,6 @@
 import { IncomingMessage, ServerResponse } from "node:http";
 import { ParsedUrlQuery } from "node:querystring";
+import { RouteMap } from "./RouteMap";
 
 export interface Request extends IncomingMessage {
   query?: ParsedUrlQuery;
@@ -30,6 +31,8 @@ export type Middleware = {
   path?: string;
   callbacks: CallbacksTemplate;
 };
+export type RouteMapAndKeyOrNull = [RouteMap, string] | [null, string];
+export type StringTupleList = [string, string][];
 export type CallbacksTemplate = (Callback | AsyncCallback)[];
 export interface RouteInterface {
   callbacks: CallbacksTemplate;
