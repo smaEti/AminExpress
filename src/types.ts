@@ -7,8 +7,8 @@ export interface Request extends IncomingMessage {
 }
 export interface Response extends ServerResponse {
 
-  json?: (data: object) => void;
-  redirect?: (path: string) => void;
+  json: (data: object) => void;
+  redirect: (path: string) => void;
 }
 export type NextFunction = (err?: Error) => any;
 export type Path = string | string[];
