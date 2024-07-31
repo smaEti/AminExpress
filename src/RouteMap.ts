@@ -1,11 +1,11 @@
-import { RouteInterface } from "./types";
+import { RouteInterface, RouteMapAndKeyOrNull, StringTupleList } from "./types";
 
 export class RouteMap {
   children: Record<string, RouteMap> = {};
   methods: Record<string, RouteInterface> = {};
   constructor() {}
 
-  private hasSection(section: string): [RouteMap, string] | [null, string] {
+  private hasSection(section: string): RouteMapAndKeyOrNull {
     const searchChar = this.children[section];
     let parameterSection;
     let keyOfPath: string = "";
@@ -34,19 +34,19 @@ export class RouteMap {
 
   search(
     path: string
-  ): [RouteMap, [string, string][]] | [null, [string, string][]] {
+  ): [RouteMap, StringTupleList] | [null, StringTupleList] {
     let PathSections = path.split("/");
     if (PathSections[1] == "") return [this, [["", ""]]];
     PathSections = PathSections.filter((str) => str !== "");
-    let params: [string, string][] = [];
+    let params: StringTupleList = [];
     return [this.searchTrie(PathSections, params), params];
   }
 
   private searchTrie(
     pathSections: string[],
-    params: [string, string][]
+    params: StringTupleList
   ): RouteMap | null {
-    const [subTrie, pathOfKey]: [RouteMap, string] | [null, string] =
+    const [subTrie, pathOfKey]: RouteMapAndKeyOrNull =
       this.hasSection(pathSections[0]);
     if (
       pathSections.slice(1, pathSections.length).length == 0 &&
@@ -73,7 +73,7 @@ export class RouteMap {
 
   private addRouteChild(PathSections: string[]): RouteMap {
     if (PathSections.length == 0) return this;
-    const [subTrie, pathOfKey]: [RouteMap, string] | [null, string] =
+    const [subTrie, pathOfKey]: RouteMapAndKeyOrNull =
       this.hasSection(PathSections[0]);
     if (subTrie !== null) {
       return subTrie.addRouteChild(PathSections.slice(1, PathSections.length));

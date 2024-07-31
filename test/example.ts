@@ -5,9 +5,12 @@ app.serveStatic(__dirname + "/uploads", "/uploads");
 
 // path related[] middleware with multiple callbacks
 app.get("/", (req: Request, res: Response, next: NextFunction) => {
-  res.json({ route: "/" });
+  // res.json({ route: "/" });
+  next(new Error("error route"))
 });
-
+app.errorHandler((err : Error , req,res,next )=>{
+  res.status(422).json({"error" : err.message})
+})
 // app.use(
 //   ["/v1", "/v2"],
 //   (req : Request , res : Response) => {
