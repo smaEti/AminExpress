@@ -5,6 +5,7 @@ import {
   Path,
   CallbacksTemplate,
   CallbackTemplate,
+  ErrorHandler,
 } from "./types";
 class AminExpress {
   router: Router = new Router();
@@ -28,6 +29,7 @@ class AminExpress {
   ) {
     this.router.delete(path, callback, ...callbacks);
   }
+  use(callback: CallbackTemplate, ...callbacks: CallbacksTemplate): void;
   use(callback: CallbackTemplate, ...callbacks: CallbacksTemplate): void;
   use(
     paths: Path,
@@ -66,6 +68,9 @@ class AminExpress {
   serveStatic(fileAddress: string,url : string) {
 
     this.router.setServeStaticPathFlag(fileAddress,url);
+  }
+  errorHandler(callback : ErrorHandler){
+    this.router.setErrorHandler(callback);
   }
 }
 export default function aminexpress(): AminExpress {

@@ -8,6 +8,7 @@ import {
   Response,
   NextFunction,
   StringTupleList,
+  ErrorHandler
 } from "./types";
 import fs, { open } from "node:fs";
 const path = require("path");
@@ -16,6 +17,7 @@ import { URL } from "node:url";
 import querystring from "node:querystring";
 import { IncomingMessage, ServerResponse } from "node:http";
 export default class Router {
+  customErrorHandler: ErrorHandler | null = null;
   serveStaticPathFlag: [string, string, number] | null = null;
   routeMap: RouteMap = new RouteMap();
   middlewareCounter: number = 0;
@@ -106,7 +108,6 @@ export default class Router {
   handler(req: IncomingMessage, res: ServerResponse) {
     let response = this.setResponseConfigs(res as Response);
     let request = this.handleQuery(req);
-    // TODO : middlewares
     if (this.serveStaticPathFlag) {
       if (req.url?.startsWith(this.serveStaticPathFlag[1])) {
         this.handleServerStatic(request.url!, request, response);
@@ -134,9 +135,12 @@ export default class Router {
         stack.push(...middles.callbacks);
       });
     }
+    let CEH = this.customErrorHandler;
     function next(err?: Error) {
       if (err) {
-        return handleError(err, request, response, next);
+        return CEH
+          ? CEH(err, request, response, next)
+          : handleError(err, request, response, next);
       }
 
       if (callbackIndex >= stack.length) return;
@@ -173,7 +177,10 @@ export default class Router {
       res.writeHead(302, { Location: path });
       res.end();
     };
-
+    res.status = function(num : number){
+      res.statusCode = num;
+      return res;
+    }
     return res;
   }
   handleServerStatic(url: string, request: Request, response: Response) {
@@ -323,6 +330,9 @@ export default class Router {
     this.serveStaticPathFlag = [fileAddress, url, max + 1];
     this.middlewareCounter++;
   }
+  setErrorHandler(callback: ErrorHandler) {
+    this.customErrorHandler = callback;
+  }
 }
 function handleError(
   err: Error,
@@ -330,5 +340,6 @@ function handleError(
   res: Response,
   next: (err?: Error) => any
 ) {
-  throw new Error("Function not implemented.");
+  res.statusCode = 500;
+  res.json({ error: err.message });
 }

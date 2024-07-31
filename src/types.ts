@@ -7,7 +7,7 @@ export interface Request extends IncomingMessage {
   params?: { [key: string]: any };
 }
 export interface Response extends ServerResponse {
-
+  status : (num : number) => Response;
   json: (data: object) => void;
   redirect: (path: string) => void;
 }
@@ -26,6 +26,12 @@ export type AsyncCallback = (
   next: NextFunction
 ) => Promise<void>;
 export type CallbackTemplate = Callback | AsyncCallback;
+export type ErrorHandler = (
+  err: Error,
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => void;
 export type Middleware = {
   index: number;
   path?: string;
