@@ -3,9 +3,6 @@ import Router from "./router";
 
 import {
   Path,
-  Request,
-  Callback,
-  AsyncCallback,
   CallbacksTemplate,
   CallbackTemplate,
 } from "./types";

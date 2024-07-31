@@ -8,17 +8,14 @@ import {
   Response,
   NextFunction,
 } from "./types";
-import fs, { open, close } from "node:fs";
-
+import fs, { open } from "node:fs";
 const path = require("path");
-
 import { RouteMap } from "./RouteMap";
 import { URL } from "node:url";
 import querystring from "node:querystring";
 import { IncomingMessage, ServerResponse } from "node:http";
 export default class Router {
   serveStaticPathFlag: [string, string, number] | null = null;
-  // serveStaticPaths: [string, string][] = [];
   routeMap: RouteMap = new RouteMap();
   middlewareCounter: number = 0;
   GLOBALmiddlewares: Middleware[] = [];
@@ -127,18 +124,11 @@ export default class Router {
     let stack: CallbacksTemplate = [];
     let callbackIndex = 0;
     stack.push(...route.methods[request.method as string].callbacks);
-    if (this.GLOBALmiddlewares.length !== 0){
-      let lastIndexOfRouteMiddlwares = 0;
-      if (route.methods[request.method as string].middlewares.length == 0)
-        lastIndexOfRouteMiddlwares = -1;
-      else lastIndexOfRouteMiddlwares = route.methods[request.method as string].middlewares[
-        route.methods[request.method as string].middlewares.length - 1
-      ].index;
-
+    if (this.GLOBALmiddlewares.length !== 0) {
       this.GLOBALmiddlewares.filter(
         (middle) =>
           middle.index >
-        lastIndexOfRouteMiddlwares
+          route.methods[request.method as string].middlewareLastIndex
       ).map((middles) => {
         stack.push(...middles.callbacks);
       });
@@ -155,7 +145,6 @@ export default class Router {
     }
 
     next();
-    
   }
   handleQuery(req: Request): Request {
     const myURL = new URL(req.headers.host + req.url!);
@@ -227,7 +216,6 @@ export default class Router {
       "GET",
       url,
       (req: Request, res: Response, next: NextFunction) => {
-        console.log("static callback");
         fs.readFile(fileAddress, function (err, data) {
           if (err) {
             response.statusCode = 500;
@@ -237,7 +225,6 @@ export default class Router {
             response.end(data);
           }
         });
-        next();
       },
       []
     );
@@ -274,11 +261,15 @@ export default class Router {
         .map((item) => {
           middlewareCallbacks.push(...item.callbacks);
         });
+      let sortedMiddlewares = [
+        ...relatedPathmids,
+        ...this.GLOBALmiddlewares,
+      ].sort((a, b) => a.index - b.index);
       newRoute.methods[method] = {
         callbacks: [...middlewareCallbacks, ...[callback, ...callbacks]],
-        middlewares: [...relatedPathmids, ...this.GLOBALmiddlewares].sort(
-          (a, b) => a.index - b.index
-        ),
+        middlewareLastIndex: sortedMiddlewares[sortedMiddlewares.length - 1]
+          ? sortedMiddlewares[sortedMiddlewares.length - 1].index
+          : -1,
       };
       if (!isArray) break;
     }
@@ -297,9 +288,6 @@ export default class Router {
         relatedPathmids.push(middleware);
       }
     }
-    console.log("static flag index", this.serveStaticPathFlag![2]);
-    console.log("Global Middlewares : ", this.GLOBALmiddlewares);
-    console.log("path Middlewares : ", this.PathRelatedMiddlewares);
     let middlewareCallbacks: CallbacksTemplate = [];
     let allMiddlewares: Middleware[] = [];
 
@@ -311,15 +299,16 @@ export default class Router {
           allMiddlewares.push(item);
         }
       });
-    console.log("before Middlewares callbacks: ", middlewareCallbacks);
-    console.log("all before route Middlewares : ", allMiddlewares);
+    allMiddlewares = allMiddlewares.sort((a, b) => a.index - b.index);
+
     newRoute.methods[method] = {
       callbacks: [...middlewareCallbacks, ...[callback, ...callbacks]],
-      middlewares: allMiddlewares.sort((a, b) => a.index - b.index),
+      middlewareLastIndex: allMiddlewares[allMiddlewares.length - 1]
+        ? allMiddlewares[allMiddlewares.length - 1].index
+        : -1,
     };
   }
   setServeStaticPathFlag(fileAddress: string, url: string) {
-    console.log([...this.PathRelatedMiddlewares, ...this.GLOBALmiddlewares]);
     const allMiddlewares = [
       ...this.PathRelatedMiddlewares,
       ...this.GLOBALmiddlewares,
@@ -330,7 +319,6 @@ export default class Router {
     else {
       max = 0;
     }
-    console.log("max :", max);
     this.serveStaticPathFlag = [fileAddress, url, max + 1];
     this.middlewareCounter++;
   }

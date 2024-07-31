@@ -33,5 +33,5 @@ export type Middleware = {
 export type CallbacksTemplate = (Callback | AsyncCallback)[];
 export interface RouteInterface {
   callbacks: CallbacksTemplate;
-  middlewares: Middleware[];
+  middlewareLastIndex: number;
 }
