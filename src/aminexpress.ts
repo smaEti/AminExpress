@@ -10,7 +10,6 @@ import {
   CallbackTemplate,
 } from "./types";
 class AminExpress {
-  serveStaticFlag: [boolean, string] = [false, ""];
   router: Router = new Router();
   get(path: Path, callback: CallbackTemplate, ...callbacks: CallbacksTemplate) {
     this.router.get(path, callback, ...callbacks);
@@ -69,8 +68,7 @@ class AminExpress {
   }
   serveStatic(fileAddress: string,url : string) {
 
-    this.router.serveStaticPathFlag = [fileAddress,url];
-
+    this.router.setServeStaticPathFlag(fileAddress,url);
   }
 }
 export default function aminexpress(): AminExpress {

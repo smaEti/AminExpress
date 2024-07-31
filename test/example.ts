@@ -1,10 +1,11 @@
 import aminexpress from "../src/aminexpress";
 import { NextFunction, Request, Response } from "../src/types";
 const app = aminexpress();
-app.serveStatic(__dirname, "/uploads");
+app.serveStatic(__dirname + "/uploads", "/uploads");
+
 // path related[] middleware with multiple callbacks
 app.get("/", (req: Request, res: Response, next: NextFunction) => {
-  res.json!({ route: "/" });
+  res.json({ route: "/" });
 });
 
 // app.use(
@@ -45,7 +46,7 @@ app.get("/v1/:id", (req: Request, res: Response, next: NextFunction) => {
   // res.end("hahahahahahahahah it works")
   console.log(req.query);
 
-  res.json!({ message: "lol" });
+  res.json({ message: "lol" });
   // res.redirect("/v2/user/akbar");
   // res.redirect("/v1/user/wer/1");1
 });
@@ -57,7 +58,7 @@ app.get("/v2/user/akbar", (req: Request, res: Response, next: NextFunction) => {
 app.post(
   "/v2/user/akbar",
   (req: Request, res: Response, next: NextFunction) => {
-    console.log("post request check ",req.query);
+    console.log("post request check ", req.query);
     next();
   }
 );
@@ -112,6 +113,7 @@ app.use((req, res, next: NextFunction) => {
   console.log("middleware after routes");
   next();
 });
+app.serveStatic(__dirname + "/uploads", "/uploads");
 
 app.listen(3000, () => {
   console.log("server");

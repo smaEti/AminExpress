@@ -21,7 +21,7 @@ tasks							                             |	   difficulity - State
 3.app.use((req , res , next)=>{})                            |        SOLVED    (checked)
 4.get , post , put , delete method routes                    |        SOLVED    (checked)
 5.strongly typed                                             |        SOLVED    (checked)
-6.required methods = res.end() , res.json() , res.redirect() |        SOLVED    (res.end does not work)
+6.required methods = res.end() , res.json() , res.redirect() |        SOLVED    (checked)
 ------------------------------------------------------------------------------------------
 7.req.query                                                  |		  SOLVED    (checked)
 -------------------------------------------------------------------------------------------

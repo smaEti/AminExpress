@@ -6,6 +6,7 @@ import {
   Methods,
   Middleware,
   Response,
+  NextFunction,
 } from "./types";
 import fs, { open, close } from "node:fs";
 
@@ -16,7 +17,7 @@ import { URL } from "node:url";
 import querystring from "node:querystring";
 import { IncomingMessage, ServerResponse } from "node:http";
 export default class Router {
-  serveStaticPathFlag: [string, string] | null = null;
+  serveStaticPathFlag: [string, string, number] | null = null;
   // serveStaticPaths: [string, string][] = [];
   routeMap: RouteMap = new RouteMap();
   middlewareCounter: number = 0;
@@ -105,39 +106,43 @@ export default class Router {
     }
   }
   handler(req: IncomingMessage, res: ServerResponse) {
-    let response = this.setResponseConfigs(res);
+    let response = this.setResponseConfigs(res as Response);
     let request = this.handleQuery(req);
+    // TODO : middlewares
     if (this.serveStaticPathFlag) {
       if (req.url?.startsWith(this.serveStaticPathFlag[1])) {
         this.handleServerStatic(request.url!, request, response);
-        return;
       }
     }
     const [route, params] = this.routeMap.search(req.url as string);
     request = this.handleUrlParameter(request, params);
-    if (route == null) {
+    if (
+      route == null ||
+      typeof route.methods[request.method as string] == "undefined"
+    ) {
       response.statusCode = 404;
       response.end(`Cannot ${request.method} ${request.url}`);
       return;
     }
     let stack: CallbacksTemplate = [];
     let callbackIndex = 0;
-    if (typeof route.methods[request.method as string] == "undefined") {
-      response.statusCode = 404;
-      response.end(`Cannot ${request.method} ${request.url}`);
-      return;
-    }
     stack.push(...route.methods[request.method as string].callbacks);
-    if (route.methods[request.method as string].middlewares.length !== 0)
+    if (this.GLOBALmiddlewares.length !== 0){
+      let lastIndexOfRouteMiddlwares = 0;
+      if (route.methods[request.method as string].middlewares.length == 0)
+        lastIndexOfRouteMiddlwares = -1;
+      else lastIndexOfRouteMiddlwares = route.methods[request.method as string].middlewares[
+        route.methods[request.method as string].middlewares.length - 1
+      ].index;
+
       this.GLOBALmiddlewares.filter(
         (middle) =>
           middle.index >
-          route.methods[request.method as string].middlewares[
-            route.methods[request.method as string].middlewares.length - 1
-          ].index
+        lastIndexOfRouteMiddlwares
       ).map((middles) => {
         stack.push(...middles.callbacks);
       });
+    }
     function next(err?: Error) {
       if (err) {
         return handleError(err, request, response, next);
@@ -150,6 +155,7 @@ export default class Router {
     }
 
     next();
+    
   }
   handleQuery(req: Request): Request {
     const myURL = new URL(req.headers.host + req.url!);
@@ -200,26 +206,41 @@ export default class Router {
       ".pdf": "application/pdf",
       ".doc": "application/msword",
     };
-    open(this.serveStaticPathFlag![0] + url, "r", (err, fd) => {
+    const fileAddress =
+      this.serveStaticPathFlag![0] +
+      request.url!.slice(
+        request.url!.indexOf(this.serveStaticPathFlag![1]) +
+          this.serveStaticPathFlag![1].length
+      );
+    open(fileAddress, "r", (err, fd) => {
       if (err) {
         if (err.code === "ENOENT") {
           response.statusCode = 404;
-          response.end(`NotFound`);
+          response.end(`file NotFound`);
           console.error(`${url} file does not exist`);
           return;
         }
       }
     });
 
-    fs.readFile(this.serveStaticPathFlag![0] + url, function (err, data) {
-      if (err) {
-        response.statusCode = 500;
-        response.end(`Error getting the file.`);
-      } else {
-        response.setHeader("Content-type", map[ext] || "text/plain");
-        response.end(data);
-      }
-    });
+    this.createRuntimeRoute(
+      "GET",
+      url,
+      (req: Request, res: Response, next: NextFunction) => {
+        console.log("static callback");
+        fs.readFile(fileAddress, function (err, data) {
+          if (err) {
+            response.statusCode = 500;
+            response.end(`Error getting the file.`);
+          } else {
+            response.setHeader("Content-type", map[ext] || "text/plain");
+            response.end(data);
+          }
+        });
+        next();
+      },
+      []
+    );
   }
 
   createRoute(
@@ -261,6 +282,57 @@ export default class Router {
       };
       if (!isArray) break;
     }
+  }
+  createRuntimeRoute(
+    method: Methods,
+    paths: Path,
+    callback: CallbackTemplate,
+    callbacks: CallbacksTemplate
+  ) {
+    let newRoute: RouteMap;
+    let relatedPathmids = [];
+    newRoute = this.routeMap.addRoute(paths as string);
+    for (const middleware of this.PathRelatedMiddlewares) {
+      if ((paths as string) == middleware.path) {
+        relatedPathmids.push(middleware);
+      }
+    }
+    console.log("static flag index", this.serveStaticPathFlag![2]);
+    console.log("Global Middlewares : ", this.GLOBALmiddlewares);
+    console.log("path Middlewares : ", this.PathRelatedMiddlewares);
+    let middlewareCallbacks: CallbacksTemplate = [];
+    let allMiddlewares: Middleware[] = [];
+
+    [...relatedPathmids, ...this.GLOBALmiddlewares]
+      .sort((a, b) => a.index - b.index)
+      .map((item) => {
+        if (item.index < this.serveStaticPathFlag![2]) {
+          middlewareCallbacks.push(...item.callbacks);
+          allMiddlewares.push(item);
+        }
+      });
+    console.log("before Middlewares callbacks: ", middlewareCallbacks);
+    console.log("all before route Middlewares : ", allMiddlewares);
+    newRoute.methods[method] = {
+      callbacks: [...middlewareCallbacks, ...[callback, ...callbacks]],
+      middlewares: allMiddlewares.sort((a, b) => a.index - b.index),
+    };
+  }
+  setServeStaticPathFlag(fileAddress: string, url: string) {
+    console.log([...this.PathRelatedMiddlewares, ...this.GLOBALmiddlewares]);
+    const allMiddlewares = [
+      ...this.PathRelatedMiddlewares,
+      ...this.GLOBALmiddlewares,
+    ].sort((a, b) => a.index - b.index);
+    let max;
+    if (allMiddlewares[allMiddlewares.length - 1])
+      max = allMiddlewares[allMiddlewares.length - 1].index;
+    else {
+      max = 0;
+    }
+    console.log("max :", max);
+    this.serveStaticPathFlag = [fileAddress, url, max + 1];
+    this.middlewareCounter++;
   }
 }
 function handleError(
