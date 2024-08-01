@@ -4,20 +4,20 @@ import { RouteMap } from "./RouteMap";
 
 export interface Request extends IncomingMessage {
   query?: ParsedUrlQuery;
-  params?: { [key: string]: any };
+  params?: { [key: string]: string };
 }
 export interface Response extends ServerResponse {
   status : (num : number) => Response;
   json: (data: object) => void;
   redirect: (path: string) => void;
 }
-export type NextFunction = (err?: Error) => any;
+export type NextFunction = (err?: Error) => void;
 export type Path = string | string[];
 export type Methods = "GET" | "POST" | "PUT" | "DELETE" | "PATCh";
 export type Callback = (
   req: Request,
   res: Response,
-  next: (err?: Error) => any
+  next: NextFunction
 ) => void;
 export type AsyncCallback = (
   req: Request,

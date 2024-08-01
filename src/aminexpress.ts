@@ -1,4 +1,4 @@
-import http, { IncomingMessage, ServerResponse } from "node:http";
+import http , { IncomingMessage, ServerResponse } from "node:http";
 import Router from "./router";
 
 import {
@@ -46,13 +46,13 @@ class AminExpress {
       (Array.isArray(pathsOrCallback) &&
         typeof callbackOrCallbacks !== "undefined")
     ) {
-      let path: Path = pathsOrCallback;
-      let firstCallback: CallbackTemplate =
+      const path: Path = pathsOrCallback;
+      const firstCallback: CallbackTemplate =
         callbackOrCallbacks as CallbackTemplate;
       this.router.use(path, firstCallback, ...callbacks);
     } else {
-      let firstCallback = pathsOrCallback as CallbackTemplate;
-      let secondCallback = callbackOrCallbacks as CallbackTemplate;
+      const firstCallback = pathsOrCallback as CallbackTemplate;
+      const secondCallback = callbackOrCallbacks as CallbackTemplate;
       this.router.use(firstCallback, secondCallback, ...callbacks);
     }
   }

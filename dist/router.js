@@ -27,7 +27,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const node_fs_1 = __importStar(require("node:fs"));
-const path = require("path");
+const path_1 = __importDefault(require("path"));
 const RouteMap_1 = require("./RouteMap");
 const node_url_1 = require("node:url");
 const node_querystring_1 = __importDefault(require("node:querystring"));
@@ -98,7 +98,7 @@ class Router {
     }
     handler(req, res) {
         var _a;
-        let response = this.setResponseConfigs(res);
+        const response = this.setResponseConfigs(res);
         let request = this.handleQuery(req);
         if (this.serveStaticPathFlag) {
             if ((_a = req.url) === null || _a === void 0 ? void 0 : _a.startsWith(this.serveStaticPathFlag[1])) {
@@ -113,7 +113,7 @@ class Router {
             response.end(`Cannot ${request.method} ${request.url}`);
             return;
         }
-        let stack = [];
+        const stack = [];
         let callbackIndex = 0;
         stack.push(...route.methods[request.method].callbacks);
         if (this.GLOBALmiddlewares.length !== 0) {
@@ -122,12 +122,12 @@ class Router {
                 stack.push(...middles.callbacks);
             });
         }
-        let CEH = this.customErrorHandler;
+        const CEH = this.customErrorHandler;
         function next(err) {
             if (err) {
                 return CEH
                     ? CEH(err, request, response, next)
-                    : handleError(err, request, response, next);
+                    : handleError(err, request, response);
             }
             if (callbackIndex >= stack.length)
                 return;
@@ -140,14 +140,14 @@ class Router {
         var _a, _b;
         const myURL = new node_url_1.URL(req.headers.host + req.url);
         req.query = node_querystring_1.default.parse(myURL.searchParams.toString());
-        let indexOfQuery = (_a = req.url) === null || _a === void 0 ? void 0 : _a.indexOf("?");
+        const indexOfQuery = (_a = req.url) === null || _a === void 0 ? void 0 : _a.indexOf("?");
         if (indexOfQuery !== -1)
             req.url = (_b = req.url) === null || _b === void 0 ? void 0 : _b.slice(0, indexOfQuery);
         return req;
     }
     handleUrlParameter(req, params) {
         req.params = {};
-        Object.entries(params).forEach(([key, value]) => {
+        Object.entries(params).forEach(([value]) => {
             if (value[0] !== value[1]) {
                 req.params[value[0].slice(1)] = value[1];
             }
@@ -171,7 +171,7 @@ class Router {
         return res;
     }
     handleServerStatic(url, request, response) {
-        const ext = path.parse(url).ext;
+        const ext = path_1.default.parse(url).ext;
         const map = {
             ".ico": "image/x-icon",
             ".html": "text/html",
@@ -190,7 +190,7 @@ class Router {
         const fileAddress = this.serveStaticPathFlag[0] +
             request.url.slice(request.url.indexOf(this.serveStaticPathFlag[1]) +
                 this.serveStaticPathFlag[1].length);
-        (0, node_fs_1.open)(fileAddress, "r", (err, fd) => {
+        (0, node_fs_1.open)(fileAddress, "r", (err) => {
             if (err) {
                 if (err.code === "ENOENT") {
                     response.statusCode = 404;
@@ -200,24 +200,24 @@ class Router {
                 }
             }
         });
-        this.createRuntimeRoute("GET", url, (req, res, next) => {
+        this.createRuntimeRoute("GET", url, (_req, res) => {
             node_fs_1.default.readFile(fileAddress, function (err, data) {
                 if (err) {
-                    response.statusCode = 500;
-                    response.end(`Error getting the file.`);
+                    res.statusCode = 500;
+                    res.end(`Error getting the file.`);
                 }
                 else {
-                    response.setHeader("Content-type", map[ext] || "text/plain");
-                    response.end(data);
+                    res.setHeader("Content-type", map[ext] || "text/plain");
+                    res.end(data);
                 }
             });
         }, []);
     }
     createRoute(method, paths, callback, callbacks) {
-        let isArray = typeof paths == "object";
+        const isArray = typeof paths == "object";
         for (let i = 0; i < paths.length; i++) {
             let newRoute;
-            let relatedPathmids = [];
+            const relatedPathmids = [];
             if (isArray) {
                 newRoute = this.routeMap.addRoute(paths[i]);
                 for (const middleware of this.PathRelatedMiddlewares) {
@@ -234,13 +234,13 @@ class Router {
                     }
                 }
             }
-            let middlewareCallbacks = [];
+            const middlewareCallbacks = [];
             [...relatedPathmids, ...this.GLOBALmiddlewares]
                 .sort((a, b) => a.index - b.index)
                 .map((item) => {
                 middlewareCallbacks.push(...item.callbacks);
             });
-            let sortedMiddlewares = [
+            const sortedMiddlewares = [
                 ...relatedPathmids,
                 ...this.GLOBALmiddlewares,
             ].sort((a, b) => a.index - b.index);
@@ -255,15 +255,15 @@ class Router {
         }
     }
     createRuntimeRoute(method, paths, callback, callbacks) {
-        let newRoute;
-        let relatedPathmids = [];
-        newRoute = this.routeMap.addRoute(paths);
+        const relatedPathmids = [];
+        const newRoute = this.routeMap.addRoute(paths);
+        ;
         for (const middleware of this.PathRelatedMiddlewares) {
             if (paths == middleware.path) {
                 relatedPathmids.push(middleware);
             }
         }
-        let middlewareCallbacks = [];
+        const middlewareCallbacks = [];
         let allMiddlewares = [];
         [...relatedPathmids, ...this.GLOBALmiddlewares]
             .sort((a, b) => a.index - b.index)
@@ -300,7 +300,7 @@ class Router {
     }
 }
 exports.default = Router;
-function handleError(err, req, res, next) {
+function handleError(err, _req, res) {
     res.statusCode = 500;
     res.json({ error: err.message });
 }
