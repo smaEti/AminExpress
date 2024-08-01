@@ -8,7 +8,7 @@ import {
   Response,
   NextFunction,
   StringTupleList,
-  ErrorHandler
+  ErrorHandler,
 } from "./types";
 import fs, { open } from "node:fs";
 const path = require("path");
@@ -151,14 +151,14 @@ export default class Router {
 
     next();
   }
-  handleQuery(req: Request): Request {
+  private handleQuery(req: Request): Request {
     const myURL = new URL(req.headers.host + req.url!);
     req.query = querystring.parse(myURL.searchParams.toString());
     let indexOfQuery = req.url?.indexOf("?");
     if (indexOfQuery !== -1) req.url = req.url?.slice(0, indexOfQuery);
     return req;
   }
-  handleUrlParameter(req: Request, params: StringTupleList): Request {
+  private handleUrlParameter(req: Request, params: StringTupleList): Request {
     req.params = {};
     Object.entries(params).forEach(([key, value]) => {
       if (value[0] !== value[1]) {
@@ -167,7 +167,7 @@ export default class Router {
     });
     return req;
   }
-  setResponseConfigs(res: Response): Response {
+  private setResponseConfigs(res: Response): Response {
     res.json = function (data: object) {
       res.setHeader("Content-Type", "application/json");
       res.write(JSON.stringify(data));
@@ -177,13 +177,17 @@ export default class Router {
       res.writeHead(302, { Location: path });
       res.end();
     };
-    res.status = function(num : number){
+    res.status = function (num: number) {
       res.statusCode = num;
       return res;
-    }
+    };
     return res;
   }
-  handleServerStatic(url: string, request: Request, response: Response) {
+  private handleServerStatic(
+    url: string,
+    request: Request,
+    response: Response
+  ) {
     const ext: string = path.parse(url).ext;
     interface StringKeyValue {
       [key: string]: string;
@@ -238,7 +242,7 @@ export default class Router {
     );
   }
 
-  createRoute(
+  private createRoute(
     method: Methods,
     paths: Path,
     callback: CallbackTemplate,
@@ -282,7 +286,7 @@ export default class Router {
       if (!isArray) break;
     }
   }
-  createRuntimeRoute(
+  private createRuntimeRoute(
     method: Methods,
     paths: Path,
     callback: CallbackTemplate,

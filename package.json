@@ -1,8 +1,8 @@
 {
   "name": "aminexpress",
   "version": "1.0.0",
-  "main": "src/aminexpress.ts",
-  "types": "src/index.d.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },

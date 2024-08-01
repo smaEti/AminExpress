@@ -8,7 +8,7 @@ import {
   ErrorHandler,
 } from "./types";
 class AminExpress {
-  router: Router = new Router();
+  private router: Router = new Router();
   get(path: Path, callback: CallbackTemplate, ...callbacks: CallbacksTemplate) {
     this.router.get(path, callback, ...callbacks);
   }
