@@ -15,10 +15,11 @@ Whether you're building a small personal project or a large enterprise applicati
 
 ## Contribution
 
-[link](#contributon)
+[link](#contribution)
 
 ## Docs
 
+- [How it works](#howitworks)
 - [installation](#installation)
 - [getting Started](#gettingstarted)
 - [methods](#methods)
@@ -27,6 +28,83 @@ Whether you're building a small personal project or a large enterprise applicati
 - [response](#response)
 - [error handling](#error)
 - [serve Static](#static)
+
+## How it works
+<a name="howitworks"></a>
+
+ This app is an HTTP router with built-in middleware support, similar to popular frameworks like Express.js. However, it utilizes a unique approach by implementing a trie tree data structure for efficient route handling. This README explains the inner workings of the app, including route creation, middleware assignment, and request handling.
+### Trie Tree Data Structure
+
+At the core of the app is a trie tree data structure, which organizes routes in a hierarchical manner. Each segment of a URL path is represented as an edge in the trie tree, and the end of the path is represented as a node. This structure allows for efficient route matching and middleware execution.
+Route Creation
+
+#### When a new route is defined, the app performs the following steps:
+
+- **URL Segmentation:** The URL is split into its constituent parts (edges). For example, the URL /user/id/ali is split into three segments: user, id, and ali.
+
+- **Node and Edge Creation:** For each segment of the URL, the app creates corresponding edges and nodes in the trie tree. If an edge or node already exists, it is reused. This prevents duplication and ensures a compact structure.
+  - For /user/id/ali, the app creates or reuses the following:
+    - An edge for user and a node for user.
+    - An edge for id and a node for id as a child of user.
+    -  An edge for ali and a node for ali as a child of id.
+
+- Middleware and Callback Assignment: The middlewares and route-specific callbacks are assigned to the final node created for the route. Middlewares defined before the route are attached in order, followed by the route's callback.
+
+### Request Handling
+
+#### When a request is received, the app processes it through the following steps:
+
+- **URL Matching:** The app traverses the trie tree using the segments of the incoming URL to find the corresponding node.
+  - For example, a request to /user/ali would traverse the edges user and ali to find the node for ali.
+
+- **Middleware Execution:** Once the target node is found, the app retrieves the list of middlewares and callbacks stored in that node.
+
+- Callback Execution: The app executes the middlewares and callbacks in the order they were defined. Any middlewares defined after the route are also added to the list of callbacks to be executed in sequence. This ensures that each middleware processes the request in sequence before the final callback is executed.
+
+### Example
+
+#### Let's walk through a concrete example:
+
+- Define Middlewares:
+
+```Javascript
+
+router.use((req, res, next) => {
+    console.log('Middleware 1');
+    next();
+});
+
+router.use((req, res, next) => {
+    console.log('Middleware 2');
+    next();
+});
+```
+
+- Define Routes:
+
+```Javascript
+
+router.get('/user/ali', (req, res) => {
+    res.send('Hello, Ali!');
+});
+
+router.use((req, res, next) => {
+    console.log('Middleware 3');
+    next();
+});
+```
+#### Internal Trie Tree Structure:
+
+- The trie tree will have edges and nodes for user and ali.
+    The node for ali will have the middlewares and the callback assigned to it.
+
+#### Handling a Request:
+
+- A request to /user/ali will trigger the middlewares and the callback in order:
+  - Middleware 1: Logs 'Middleware 1'.
+  - Middleware 2: Logs 'Middleware 2'.
+  - Callback: Sends 'Hello, Ali!' as the response.
+  - Middleware 3: Logs 'Middleware 3'.
 
 ## <a name="installation">installation</a>
 
