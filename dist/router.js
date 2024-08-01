@@ -61,16 +61,17 @@ class Router {
                     this.PathRelatedMiddlewares.push({
                         index: this.middlewareCounter,
                         callbacks: [callbackOrCallbacks, ...callbacks],
-                        path: pathsOrCallback[i],
+                        path: pathsOrCallback[i][0] == "/" ? pathsOrCallback[i].slice(1, pathsOrCallback.length) : pathsOrCallback[i],
                     });
                     this.middlewareCounter++;
                 }
             }
             else {
+                console.log(pathsOrCallback[0] == "/");
                 this.PathRelatedMiddlewares.push({
                     index: this.middlewareCounter,
                     callbacks: [callbackOrCallbacks, ...callbacks],
-                    path: pathsOrCallback,
+                    path: pathsOrCallback[0] == "/" ? pathsOrCallback.slice(1, pathsOrCallback.length) : pathsOrCallback,
                 });
                 this.middlewareCounter++;
             }
@@ -221,7 +222,7 @@ class Router {
             if (isArray) {
                 newRoute = this.routeMap.addRoute(paths[i]);
                 for (const middleware of this.PathRelatedMiddlewares) {
-                    if (paths[i] == middleware.path) {
+                    if (paths[i].includes(middleware.path)) {
                         relatedPathmids.push(middleware);
                     }
                 }
@@ -229,7 +230,8 @@ class Router {
             else {
                 newRoute = this.routeMap.addRoute(paths);
                 for (const middleware of this.PathRelatedMiddlewares) {
-                    if (paths == middleware.path) {
+                    console.log(paths, middleware.path);
+                    if (paths.includes(middleware.path)) {
                         relatedPathmids.push(middleware);
                     }
                 }

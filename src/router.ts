@@ -72,16 +72,18 @@ export default class Router {
           this.PathRelatedMiddlewares.push({
             index: this.middlewareCounter,
             callbacks: [callbackOrCallbacks as CallbackTemplate, ...callbacks],
-            path: pathsOrCallback[i] as string,
+            path: pathsOrCallback[i][0] == "/" ? pathsOrCallback[i].slice(1,pathsOrCallback.length) :  pathsOrCallback[i] as string,
           });
           this.middlewareCounter++;
         }
       } else {
+        console.log(pathsOrCallback[0] == "/")
         this.PathRelatedMiddlewares.push({
           index: this.middlewareCounter,
           callbacks: [callbackOrCallbacks as CallbackTemplate, ...callbacks],
-          path: pathsOrCallback as string,
+          path: pathsOrCallback[0] == "/" ? pathsOrCallback.slice(1, pathsOrCallback.length) :  pathsOrCallback as string,
         });
+
         this.middlewareCounter++;
       }
     } else {
@@ -254,14 +256,14 @@ export default class Router {
       if (isArray) {
         newRoute = this.routeMap.addRoute(paths[i]);
         for (const middleware of this.PathRelatedMiddlewares) {
-          if ((paths[i] as string) == middleware.path) {
+          if ((paths[i] as string).includes(middleware.path!)) {
             relatedPathmids.push(middleware);
           }
         }
       } else {
         newRoute = this.routeMap.addRoute(paths as string);
         for (const middleware of this.PathRelatedMiddlewares) {
-          if ((paths as string) == middleware.path) {
+          if ((paths as string).includes(middleware.path!)) {
             relatedPathmids.push(middleware);
           }
         }
@@ -294,7 +296,7 @@ export default class Router {
     const relatedPathmids = [];
     const newRoute: RouteMap = this.routeMap.addRoute(paths as string);;
     for (const middleware of this.PathRelatedMiddlewares) {
-      if ((paths as string) == middleware.path) {
+      if ((paths as string).includes(middleware.path!)) {
         relatedPathmids.push(middleware);
       }
     }
