@@ -2,11 +2,11 @@
 
 ## Introduction
 
-Welcome to **AminExpress**, a high-performance, strongly-typed HTTP routing library designed to handle large-scale applications efficiently. Leveraging the power of the Trie tree data structure, our router ensures rapid and efficient route matching, making it a perfect choice for developers aiming to build scalable and performant web applications.
+Welcome to **AminExpress**, a high-performance, strongly-typed HTTP routing library designed to handle large-scale applications efficiently. Leveraging the power of the radix tree data structure, our router ensures rapid and efficient route matching, making it a perfect choice for developers aiming to build scalable and performant web applications.
 
 ## Key Features
 
-- **Efficient Routing**: Built on a Trie tree data structure, AminExpress excels in quickly matching routes, ensuring minimal latency even as the number of routes grows.
+- **Efficient Routing**: Built on a radix tree data structure, AminExpress excels in quickly matching routes, ensuring minimal latency even as the number of routes grows.
 - **Middleware Support**: Easily integrate middleware to handle tasks such as authentication, logging, and more, enhancing your application's functionality without cluttering your main logic.
 - **Static File Serving**: Simplify the process of serving static files like HTML, CSS, and JavaScript with built-in support, reducing the need for additional configuration or third-party libraries.
 - **Strongly Typed**: With TypeScript support, enjoy the benefits of static typing, including improved code quality, better tooling, and reduced runtime errors.
@@ -32,17 +32,17 @@ Whether you're building a small personal project or a large enterprise applicati
 ## How it works
 <a name="howitworks"></a>
 
- This app is an HTTP router with built-in middleware support, similar to popular frameworks like Express.js. However, it utilizes a unique approach by implementing a trie tree data structure for efficient route handling. This README explains the inner workings of the app, including route creation, middleware assignment, and request handling.
-### Trie Tree Data Structure
+ This app is an HTTP router with built-in middleware support, similar to popular frameworks like Express.js. However, it utilizes a unique approach by implementing a radix tree data structure for efficient route handling. This README explains the inner workings of the app, including route creation, middleware assignment, and request handling.
+### radix Tree Data Structure
 
-At the core of the app is a trie tree data structure, which organizes routes in a hierarchical manner. Each segment of a URL path is represented as an edge in the trie tree, and the end of the path is represented as a node. This structure allows for efficient route matching and middleware execution.
+At the core of the app is a radix tree data structure, which organizes routes in a hierarchical manner. Each segment of a URL path is represented as an edge in the radix tree, and the end of the path is represented as a node. This structure allows for efficient route matching and middleware execution.
 ### Route Creation
 
 #### When a new route is defined, the app performs the following steps:
 
 - **URL Segmentation:** The URL is split into its constituent parts (edges). For example, the URL /user/id/ali is split into three segments: user, id, and ali.
 
-- **Node and Edge Creation:** For each segment of the URL, the app creates corresponding edges and nodes in the trie tree. If an edge or node already exists, it is reused. This prevents duplication and ensures a compact structure.
+- **Node and Edge Creation:** For each segment of the URL, the app creates corresponding edges and nodes in the radix tree. If an edge or node already exists, it is reused. This prevents duplication and ensures a compact structure.
   - For /user/id/ali, the app creates or reuses the following:
     - An edge for user and a node for user.
     - An edge for id and a node for id as a child of user.
@@ -54,7 +54,7 @@ At the core of the app is a trie tree data structure, which organizes routes in 
 
 #### When a request is received, the app processes it through the following steps:
 
-- **URL Matching:** The app traverses the trie tree using the segments of the incoming URL to find the corresponding node.
+- **URL Matching:** The app traverses the radix tree using the segments of the incoming URL to find the corresponding node.
   - For example, a request to /user/ali would traverse the edges user and ali to find the node for ali.
 
 - **Middleware Execution:** Once the target node is found, the app retrieves the list of middlewares and callbacks stored in that node.
@@ -93,9 +93,9 @@ router.use((req, res, next) => {
     next();
 });
 ```
-#### Internal Trie Tree Structure:
+#### Internal Radix Tree Structure:
 
-- The trie tree will have edges and nodes for user and ali.
+- The radix tree will have edges and nodes for user and ali.
     The node for ali will have the middlewares and the callback assigned to it.
 
 #### Handling a Request:
