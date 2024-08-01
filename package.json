@@ -8,7 +8,7 @@
   },
   "author": "smaEti",
   "license": "ISC",
-  "description": "TrieTreebased Http Router",
+  "description": "Triebased Http Router",
   "devDependencies": {
     "typescript": "^5.5.4"
   },
