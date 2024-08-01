@@ -181,7 +181,7 @@ app.get(
 );
 ```
 
-## <a name="error handling">error handling</a>
+## <a name="error">error handling</a>
 
 #### this library has its own error handler that you can call it with `next(err : Error)`
 
