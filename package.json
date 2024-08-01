@@ -4,13 +4,35 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
+    "lint" : "npx eslint src",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "keywords": [
+    "aminexpress",
+    "mini",
+    "web",
+    "http",
+    "rest",
+    "restful",
+    "router",
+    "app",
+    "api"
+  ],
+  "repository": "aminexpress",
+  "files": [
+    "LICENSE",
+    "Readme.md",
+    "dist/"
+  ],
   "author": "smaEti",
   "license": "ISC",
-  "description": "Tree based Http Router",
+  "description": "mini HTTP router with fast routing and a diffrent method for handling middlewares",
   "devDependencies": {
-    "typescript": "^5.5.4"
+    "@eslint/js": "^9.8.0",
+    "@types/eslint__js": "^8.42.3",
+    "eslint": "^9.8.0",
+    "typescript": "^5.5.4",
+    "typescript-eslint": "^8.0.0"
   },
   "dependencies": {
     "@types/node": "^20.14.12"

@@ -26,13 +26,13 @@ class AminExpress {
         if (typeof pathsOrCallback === "string" ||
             (Array.isArray(pathsOrCallback) &&
                 typeof callbackOrCallbacks !== "undefined")) {
-            let path = pathsOrCallback;
-            let firstCallback = callbackOrCallbacks;
+            const path = pathsOrCallback;
+            const firstCallback = callbackOrCallbacks;
             this.router.use(path, firstCallback, ...callbacks);
         }
         else {
-            let firstCallback = pathsOrCallback;
-            let secondCallback = callbackOrCallbacks;
+            const firstCallback = pathsOrCallback;
+            const secondCallback = callbackOrCallbacks;
             this.router.use(firstCallback, secondCallback, ...callbacks);
         }
     }

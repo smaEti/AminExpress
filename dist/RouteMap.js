@@ -10,7 +10,7 @@ class RouteMap {
         const searchChar = this.children[section];
         let parameterSection;
         let keyOfPath = "";
-        Object.entries(this.children).forEach(([key, value]) => {
+        Object.entries(this.children).forEach(([key]) => {
             if (key.startsWith(":")) {
                 parameterSection = this.children[key];
                 keyOfPath = key;
@@ -34,7 +34,7 @@ class RouteMap {
         if (PathSections[1] == "")
             return [this, [["", ""]]];
         PathSections = PathSections.filter((str) => str !== "");
-        let params = [];
+        const params = [];
         return [this.searchTrie(PathSections, params), params];
     }
     searchTrie(pathSections, params) {
@@ -58,7 +58,7 @@ class RouteMap {
     addRouteChild(PathSections) {
         if (PathSections.length == 0)
             return this;
-        const [subTrie, pathOfKey] = this.hasSection(PathSections[0]);
+        const [subTrie] = this.hasSection(PathSections[0]);
         if (subTrie !== null) {
             return subTrie.addRouteChild(PathSections.slice(1, PathSections.length));
         }

@@ -6,12 +6,11 @@ import {
   Methods,
   Middleware,
   Response,
-  NextFunction,
   StringTupleList,
   ErrorHandler,
 } from "./types";
-import fs, { open } from "node:fs";
-const path = require("path");
+import fs ,{ open } from "node:fs";
+import path from "path";
 import { RouteMap } from "./RouteMap";
 import { URL } from "node:url";
 import querystring from "node:querystring";
@@ -73,16 +72,18 @@ export default class Router {
           this.PathRelatedMiddlewares.push({
             index: this.middlewareCounter,
             callbacks: [callbackOrCallbacks as CallbackTemplate, ...callbacks],
-            path: pathsOrCallback[i] as string,
+            path: pathsOrCallback[i][0] == "/" ? pathsOrCallback[i].slice(1,pathsOrCallback.length) :  pathsOrCallback[i] as string,
           });
           this.middlewareCounter++;
         }
       } else {
+        console.log(pathsOrCallback[0] == "/")
         this.PathRelatedMiddlewares.push({
           index: this.middlewareCounter,
           callbacks: [callbackOrCallbacks as CallbackTemplate, ...callbacks],
-          path: pathsOrCallback as string,
+          path: pathsOrCallback[0] == "/" ? pathsOrCallback.slice(1, pathsOrCallback.length) :  pathsOrCallback as string,
         });
+
         this.middlewareCounter++;
       }
     } else {
@@ -106,7 +107,7 @@ export default class Router {
     }
   }
   handler(req: IncomingMessage, res: ServerResponse) {
-    let response = this.setResponseConfigs(res as Response);
+    const response = this.setResponseConfigs(res as Response);
     let request = this.handleQuery(req);
     if (this.serveStaticPathFlag) {
       if (req.url?.startsWith(this.serveStaticPathFlag[1])) {
@@ -123,7 +124,7 @@ export default class Router {
       response.end(`Cannot ${request.method} ${request.url}`);
       return;
     }
-    let stack: CallbacksTemplate = [];
+    const stack: CallbacksTemplate = [];
     let callbackIndex = 0;
     stack.push(...route.methods[request.method as string].callbacks);
     if (this.GLOBALmiddlewares.length !== 0) {
@@ -135,12 +136,12 @@ export default class Router {
         stack.push(...middles.callbacks);
       });
     }
-    let CEH = this.customErrorHandler;
+    const CEH = this.customErrorHandler;
     function next(err?: Error) {
       if (err) {
         return CEH
           ? CEH(err, request, response, next)
-          : handleError(err, request, response, next);
+          : handleError(err, request, response);
       }
 
       if (callbackIndex >= stack.length) return;
@@ -154,13 +155,13 @@ export default class Router {
   private handleQuery(req: Request): Request {
     const myURL = new URL(req.headers.host + req.url!);
     req.query = querystring.parse(myURL.searchParams.toString());
-    let indexOfQuery = req.url?.indexOf("?");
+    const indexOfQuery = req.url?.indexOf("?");
     if (indexOfQuery !== -1) req.url = req.url?.slice(0, indexOfQuery);
     return req;
   }
   private handleUrlParameter(req: Request, params: StringTupleList): Request {
     req.params = {};
-    Object.entries(params).forEach(([key, value]) => {
+    Object.entries(params).forEach(([value]) => {
       if (value[0] !== value[1]) {
         req.params![value[0].slice(1)] = value[1];
       }
@@ -213,7 +214,7 @@ export default class Router {
         request.url!.indexOf(this.serveStaticPathFlag![1]) +
           this.serveStaticPathFlag![1].length
       );
-    open(fileAddress, "r", (err, fd) => {
+    open(fileAddress, "r", (err) => {
       if (err) {
         if (err.code === "ENOENT") {
           response.statusCode = 404;
@@ -227,14 +228,14 @@ export default class Router {
     this.createRuntimeRoute(
       "GET",
       url,
-      (req: Request, res: Response, next: NextFunction) => {
+      (_req: Request, res: Response) => {
         fs.readFile(fileAddress, function (err, data) {
           if (err) {
-            response.statusCode = 500;
-            response.end(`Error getting the file.`);
+            res.statusCode = 500;
+            res.end(`Error getting the file.`);
           } else {
-            response.setHeader("Content-type", map[ext] || "text/plain");
-            response.end(data);
+            res.setHeader("Content-type", map[ext] || "text/plain");
+            res.end(data);
           }
         });
       },
@@ -248,32 +249,32 @@ export default class Router {
     callback: CallbackTemplate,
     callbacks: CallbacksTemplate
   ) {
-    let isArray = typeof paths == "object";
+    const isArray = typeof paths == "object";
     for (let i = 0; i < paths.length; i++) {
       let newRoute: RouteMap;
-      let relatedPathmids = [];
+      const relatedPathmids = [];
       if (isArray) {
         newRoute = this.routeMap.addRoute(paths[i]);
         for (const middleware of this.PathRelatedMiddlewares) {
-          if ((paths[i] as string) == middleware.path) {
+          if ((paths[i] as string).includes(middleware.path!)) {
             relatedPathmids.push(middleware);
           }
         }
       } else {
         newRoute = this.routeMap.addRoute(paths as string);
         for (const middleware of this.PathRelatedMiddlewares) {
-          if ((paths as string) == middleware.path) {
+          if ((paths as string).includes(middleware.path!)) {
             relatedPathmids.push(middleware);
           }
         }
       }
-      let middlewareCallbacks: CallbacksTemplate = [];
+      const middlewareCallbacks: CallbacksTemplate = [];
       [...relatedPathmids, ...this.GLOBALmiddlewares]
         .sort((a, b) => a.index - b.index)
         .map((item) => {
           middlewareCallbacks.push(...item.callbacks);
         });
-      let sortedMiddlewares = [
+      const sortedMiddlewares = [
         ...relatedPathmids,
         ...this.GLOBALmiddlewares,
       ].sort((a, b) => a.index - b.index);
@@ -292,15 +293,14 @@ export default class Router {
     callback: CallbackTemplate,
     callbacks: CallbacksTemplate
   ) {
-    let newRoute: RouteMap;
-    let relatedPathmids = [];
-    newRoute = this.routeMap.addRoute(paths as string);
+    const relatedPathmids = [];
+    const newRoute: RouteMap = this.routeMap.addRoute(paths as string);;
     for (const middleware of this.PathRelatedMiddlewares) {
-      if ((paths as string) == middleware.path) {
+      if ((paths as string).includes(middleware.path!)) {
         relatedPathmids.push(middleware);
       }
     }
-    let middlewareCallbacks: CallbacksTemplate = [];
+    const middlewareCallbacks: CallbacksTemplate = [];
     let allMiddlewares: Middleware[] = [];
 
     [...relatedPathmids, ...this.GLOBALmiddlewares]
@@ -340,9 +340,8 @@ export default class Router {
 }
 function handleError(
   err: Error,
-  req: Request,
+  _req: Request,
   res: Response,
-  next: (err?: Error) => any
 ) {
   res.statusCode = 500;
   res.json({ error: err.message });
