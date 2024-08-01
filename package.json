@@ -1,18 +1,18 @@
 {
   "name": "aminexpress",
   "version": "1.0.0",
-  "main": "index.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
+  "author": "smaEti",
   "license": "ISC",
-  "description": "",
+  "description": "Triebased Http Router",
   "devDependencies": {
     "typescript": "^5.5.4"
   },
   "dependencies": {
-    "@types/node": "^20.14.12",
-    "ts-node": "^10.9.2"
+    "@types/node": "^20.14.12"
   }
 }

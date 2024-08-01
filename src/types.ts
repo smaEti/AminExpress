@@ -13,7 +13,6 @@ export interface Response extends ServerResponse {
 }
 export type NextFunction = (err?: Error) => any;
 export type Path = string | string[];
-// export type callback =
 export type Methods = "GET" | "POST" | "PUT" | "DELETE" | "PATCh";
 export type Callback = (
   req: Request,
